@@ -1,0 +1,1 @@
+> https://docs.spring.io/spring-authorization-server/reference/protocol-endpoints.html

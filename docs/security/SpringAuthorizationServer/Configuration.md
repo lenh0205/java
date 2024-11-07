@@ -251,19 +251,19 @@ public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity h
 
 ## 'OAuth2ClientAuthenticationFilter' default configuration:
 
-### AuthenticationConverter 
+### AuthenticationConverter
 * -> a **`DelegatingAuthenticationConverter`**
 * -> composed of **JwtClientAssertionAuthenticationConverter**, **X509ClientCertificateAuthenticationConverter**, **ClientSecretBasicAuthenticationConverter**, **ClientSecretPostAuthenticationConverter**, and **PublicClientAuthenticationConverter**
 
-### AuthenticationManager 
-* -> an **`AuthenticationManager`**
+### AuthenticationManager
+* -> an **`AuthenticationManager`**
 * -> composed of **JwtClientAssertionAuthenticationProvider**, **X509ClientCertificateAuthenticationProvider**, **ClientSecretAuthenticationProvider**, and **PublicClientAuthenticationProvider**
 
-### AuthenticationSuccessHandler 
+### AuthenticationSuccessHandler 
 * -> an internal implementation that associates the "authenticated" **`OAuth2ClientAuthenticationToken`** (current **Authentication**) to the **SecurityContext**
 
 ### AuthenticationFailureHandler
-* -> an internal implementation that uses the **`OAuth2Error`** associated with the **`OAuth2AuthenticationException`** to return the OAuth2 error response
+* -> an internal implementation that uses the **`OAuth2Error`** associated with the **`OAuth2AuthenticationException`** to return the OAuth2 error response
 
 ## Customizing Jwt Client Assertion Validation
 * -> **`JwtClientAssertionDecoderFactory.DEFAULT_JWT_VALIDATOR_FACTORY`** is the **default factory** that provides an **OAuth2TokenValidator<Jwt>** for the specified **RegisteredClient**
@@ -372,13 +372,17 @@ private Consumer<List<AuthenticationProvider>> configureX509ClientCertificateVer
 * -> the **default implementation** of the **`certificate verifier`** will **`retrieve the client's JSON Web Key Set`** using the setting **RegisteredClient.getClientSettings.getJwkSetUrl()**
 * -> and **`expect to find a match against the client 'X509Certificate' received`** during the **TLS handshake**
 
-* -> the **RegisteredClient.getClientSettings.getJwkSetUrl()** setting is used to **`retrieve the client’s certificates via a JSON Web Key (JWK) Set`**
+* -> the **RegisteredClient.getClientSettings.getJwkSetUrl()** setting is used to **`retrieve the client's certificates via a JSON Web Key (JWK) Set`**
 * -> **`a certificate`** is represented with the **x5c parameter of an individual JWK within the set**
 
 ### Client Certificate-Bound Access Tokens
-* -> When Mutual-TLS client authentication is used at the token endpoint, the authorization server is able to bind the issued access token to the client’s X509Certificate. The binding is accomplished by computing the SHA-256 thumbprint of the client’s X509Certificate and associating the thumbprint with the access token. For example, a JWT access token would include a x5t#S256 claim, containing the X509Certificate thumbprint, within the top-level cnf (confirmation method) claim.
+* -> when **Mutual-TLS client authentication** is used at **`the token endpoint`**, 
+* -> the **authorization server** is able to **`bind the issued access token to the client's X509Certificate`**
+* -> the **binding** is accomplished by **`computing the SHA-256 thumbprint of the client's X509Certificate`** and **`associating the thumbprint with the access token`**
+* _for example, a JWT access token would include a x5t#S256 claim, containing the X509Certificate thumbprint, within the top-level cnf (confirmation method) claim_
 
-Binding the access token to the client’s X509Certificate provides the ability to implement a proof-of-possession mechanism during protected resource access. For example, the protected resource would obtain the client’s X509Certificate used during Mutual-TLS authentication and then verify that the certificate thumbprint matches the x5t#S256 claim associated with the access token.
+* -> **binding the access token to the client's X509Certificate** provides the ability to **`implement a proof-of-possession mechanism during protected resource access`**
+* _for example, the protected resource would obtain the client's X509Certificate used during Mutual-TLS authentication and then verify that the certificate thumbprint matches the x5t#S256 claim associated with the access token_
 
 * _The following example shows how to enable certificate-bound access tokens for a client:_
 ```java

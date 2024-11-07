@@ -1,7 +1,7 @@
 
 # Setup
-* -> tạo 1 **spring-boot based application**
-* -> add **spring Boot’s starter for Spring Authorization Server** as a dependency:
+* -> tạo 1 **spring-boot based application** sử dụng **spring security** (_xem phần `~\security\SpringSecurity`_)
+* -> add **spring Boot's starter for Spring Authorization Server** as a dependency:
 
 ```bash - gradle
 implementation "org.springframework.boot:spring-boot-starter-oauth2-authorization-server"
@@ -13,33 +13,46 @@ implementation "org.springframework.boot:spring-boot-starter-oauth2-authorizatio
 
 ```yml - application.yml
 server:
-  port: 9000
+  port: 9000 # specify the port that auth server will run 
 
 logging:
   level:
     org.springframework.security: trace
 
 spring:
+  # security configuration
   security:
     user:
       name: user
       password: password
     oauth2:
       authorizationserver:
+
+        # configure the repository of client services:
         client:
           oidc-client:
             registration:
+              # identify which client is trying to access the resource:
               client-id: "oidc-client"
+
+              # a secret known to the client and server that provides trust between the 2
               client-secret: "{noop}secret"
+
               client-authentication-methods:
-                - "client_secret_basic"
+                - "client_secret_basic" # basic authentication (username-password)
+
               authorization-grant-types:
+                # allow the client to generate both an authorization code and a refresh token
                 - "authorization_code"
                 - "refresh_token"
+
+              # the client will use it in a redirect-based flow
               redirect-uris:
                 - "http://127.0.0.1:8080/login/oauth2/code/oidc-client"
               post-logout-redirect-uris:
                 - "http://127.0.0.1:8080/"
+
+              # defines authorizations that the client may have
               scopes:
                 - "openid"
                 - "profile"
@@ -53,13 +66,14 @@ spring:
 
 ```java - SecurityConfig.java
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity // enable the Spring web security module
 public class SecurityConfig {
 
 	@Bean 
 	@Order(1)
 	public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
 			throws Exception {
+		// apply the default OAuth security:
 		OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
 		http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 			.oidc(Customizer.withDefaults());	// Enable OpenID Connect 1.0
@@ -79,14 +93,17 @@ public class SecurityConfig {
 		return http.build();
 	}
 
+	// configure second Spring Security filter chain for authentication:
 	@Bean 
 	@Order(2)
 	public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
 			throws Exception {
 		http
-			.authorizeHttpRequests((authorize) -> authorize
-				.anyRequest().authenticated()
+			.authorizeHttpRequests((authorize) -> 
+				authorize.anyRequest().authenticated()
+				// require authentication for all requests
 			)
+			// providing a form-based authentication
 			// Form login handles the redirect to the login page from the
 			// authorization server filter chain
 			.formLogin(Customizer.withDefaults());
