@@ -32,6 +32,30 @@ public class Application {
 public class HomeController {}
 ```
 
+* -> **`default scope in Spring in singleton`**
+* -> _but we can specific it scope like this:_
+```java
+@Configuration
+public class DefaultSecurityConfig {
+    @Bean // singleton scope
+    public MyService myService() {
+        return new MyService();
+    }
+
+    @Bean
+    @Scope("request")
+    public MyScopedService myScopedService() {
+        return new MyScopedService();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public MyTransientService myTransientService() {
+        return new MyTransientService();
+    }
+}
+```
+
 ================================================================================
 # Bean Life-Cycle
 * -> Spring cho phép ta can thiệp vào vòng đời của "bean" thông qua các **Annotation** đặt lên các method của "bean"

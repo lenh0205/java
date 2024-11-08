@@ -2,12 +2,10 @@
 > both with require an OAuth authentication (`authenticating the users` and `issuing access tokens`) from a an OAuth authorization server (using `Spring Security OAuth Authorization Server`)
 
 =========================================================================
-# Configuration
+# Authorization server Configuration
 * -> _xem phần `~\security\SpringAuthorizationServer\basic_setup.md` để setup 1 cách cơ bản_
 
 ## application.yml
-* _add an entry **127.0.0.1:auth-server** in our **`/etc/hosts`** file_
-* -> to allow to run the client and the auth server **on our local machine** and **avoids problems with session cookie overwrites between the two**
 
 ```yml
 server:
@@ -42,8 +40,14 @@ spring:
                 - articles.read
 ```
 
-## Spring Beans configuration
+## add host for "auth-server"
+* -> add an entry **127.0.0.1:auth-server** in our **`/etc/hosts`** file
+* -> to allow to run the client and the auth server **on our local machine** and **avoids problems with session cookie overwrites between the two**
 
+* -> nếu không ta cứ dùng **`localhost`** để cấu hình cho Authorization server, Resource server và Client server của ta là được
+
+
+## Spring Beans configuration
 ```java
 @Configuration
 @EnableWebSecurity
@@ -323,5 +327,5 @@ public class ArticlesController {
 # Run
 * -> first, go into the browser and try to access the `http://127.0.0.1:8080/articles` page
 * -> we'll be automatically redirected to **the OAuth server login page** under `http://auth-server:9000/login` URL
-* -> after providing the proper username-password, the authorization server will redirect us back to the requested URL - the list of articles
-* -> further requests to the articles endpoint won’t require logging in, as the access token will be stored in a cookie.
+* -> after providing the proper username-password, the `authorization server will redirect us back to the requested URL` - the list of articles
+* -> further requests to the articles endpoint won't require logging in, as the access token will be stored in a cookie
