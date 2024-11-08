@@ -53,10 +53,10 @@ public class DefaultSecurityConfig {
     SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-        .oidc(withDefaults()); // Enable OpenID Connect 1.0
+        .oidc(Customizer.withDefaults()); // Enable OpenID Connect 1.0
 
         // generate a default form login page:
-        return http.formLogin(withDefaults()).build();
+        return http.formLogin(Customizer.withDefaults()).build();
     }
 
     @Bean
@@ -64,7 +64,7 @@ public class DefaultSecurityConfig {
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorizeRequests -> authorizeRequests.anyRequest()
             .authenticated())
-        .formLogin(withDefaults());
+        .formLogin(Customizer.withDefaults());
         return http.build();
     }
 
@@ -91,7 +91,7 @@ public class DefaultSecurityConfig {
 
 ## Denpendencies
 
-```xml
+```xml - pom.xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-web</artifactId>
@@ -233,33 +233,36 @@ spring:
 ## Spring Beans configuration
 
 ```java
-// create a WebClient instance to perform HTTP requests to our resource server
-// use the standard implementation with just one addition of the OAuth authorization filter
-@Bean
-WebClient webClient(OAuth2AuthorizedClientManager authorizedClientManager) {
-    ServletOAuth2AuthorizedClientExchangeFilterFunction oauth2Client =
-      new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
-    return WebClient.builder()
-      .apply(oauth2Client.oauth2Configuration())
-      .build();
-}
-
-// the WebClient requires an OAuth2AuthorizedClientManager as a dependency
-@Bean
-OAuth2AuthorizedClientManager authorizedClientManager(
-        ClientRegistrationRepository clientRegistrationRepository,
-        OAuth2AuthorizedClientRepository authorizedClientRepository) {
-
-    OAuth2AuthorizedClientProvider authorizedClientProvider =
-      OAuth2AuthorizedClientProviderBuilder.builder()
-        .authorizationCode()
-        .refreshToken()
+@Configuration
+public class WebClientConfig {
+  // create a WebClient instance to perform HTTP requests to our resource server
+  // use the standard implementation with just one addition of the OAuth authorization filter
+  @Bean
+  WebClient webClient(OAuth2AuthorizedClientManager authorizedClientManager) {
+      ServletOAuth2AuthorizedClientExchangeFilterFunction oauth2Client =
+        new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+      return WebClient.builder()
+        .apply(oauth2Client.oauth2Configuration())
         .build();
-    DefaultOAuth2AuthorizedClientManager authorizedClientManager = new DefaultOAuth2AuthorizedClientManager(
-      clientRegistrationRepository, authorizedClientRepository);
-    authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+  }
 
-    return authorizedClientManager;
+  // the WebClient requires an OAuth2AuthorizedClientManager as a dependency
+  @Bean
+  OAuth2AuthorizedClientManager authorizedClientManager(
+          ClientRegistrationRepository clientRegistrationRepository,
+          OAuth2AuthorizedClientRepository authorizedClientRepository) {
+
+      OAuth2AuthorizedClientProvider authorizedClientProvider =
+        OAuth2AuthorizedClientProviderBuilder.builder()
+          .authorizationCode()
+          .refreshToken()
+          .build();
+      DefaultOAuth2AuthorizedClientManager authorizedClientManager = new DefaultOAuth2AuthorizedClientManager(
+        clientRegistrationRepository, authorizedClientRepository);
+      authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+
+      return authorizedClientManager;
+  }
 }
 ```
 
@@ -281,7 +284,7 @@ public class SecurityConfig {
             // configure the login page URL (defined in .yml config) 
             oauth2Login.loginPage("/oauth2/authorization/articles-client-oidc"))
           // the OAuth client
-          .oauth2Client(withDefaults());
+          .oauth2Client(Customizer.withDefaults());
         return http.build();
     }
 }
