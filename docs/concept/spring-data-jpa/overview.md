@@ -4,3 +4,4 @@
 
 * -> vậy nên JPA được đưa ra như 1 đặc tả vệ việc ánh xạ giữa java và cơ sở dữ liệu quan hệ - thông qua công nghệ ORM
 * -> trong Java, ORM được thực hiện thông qua Reflection và JDBC
+

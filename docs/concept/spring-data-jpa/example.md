@@ -1,5 +1,21 @@
 > https://www.codejava.net/frameworks/spring/understand-spring-data-jpa-with-simple-example
 
+============================================================================
+# Example: plain Spring
+* _using plain `Spring`, no heavy weight `XML` or `Spring Boot` stuff_
+* _using `MySQL Connector Java` as JDBC_
+
+## Create table
+
+```sql
+CREATE TABLE `customer` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `firstname` varchar(45) NOT NULL,
+  `lastname` varchar(45) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+```
+
 # 'pom.xml" file - Configure Dependencies in Maven
 * -> specify the **`required dependencies`** inside the <dependencies> section
 * -> save the file and **`Maven will automatically download all the required JAR files`**
@@ -37,7 +53,7 @@
 </dependency>
 ```
 
-# Configure Database Connection Properties in persistence.xml
+# persistence.xml - Configure Database Connection Properties  
 * -> since **Hibernate** is used as **the provider of JPA (Java Persistence API)**, we need to specify the **`database connection properties`** in the **`persistence.xml`** file 
 * -> which is created under the **META-INF** directory which is under the **src/main/resources** directory
 
@@ -232,3 +248,276 @@ public class CustomerTest {
  
 }
 ```
+
+============================================================================
+# Example: spring-boot
+
+## Code Spring Boot Application Class
+
+```java
+package net.codejava;
+ 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+ 
+@SpringBootApplication
+public class AppMain {
+    public static void main(String[] args) {
+        SpringApplication.run(AppMain.class, args);
+```
+
+## pom.xml
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+        http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.codejava</groupId>
+    <artifactId>ProductManager</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+ 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.3.RELEASE</version>
+    </parent>
+ 
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+     
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build> 
+</project>
+```
+
+## Configure Data Source Properties
+* -> create the **`application.properties`** file under the **src/main/resources** directory
+
+```bash
+spring.jpa.hibernate.ddl-auto=none
+spring.datasource.url=jdbc:mysql://localhost:3306/sales
+spring.datasource.username=root
+spring.datasource.password=password
+logging.level.root=WARN
+```
+
+## Code Spring MVC Controller Class
+
+```java
+package net.codejava;
+ 
+import org.springframework.stereotype.Controller;
+ 
+@Controller
+public class AppController {
+ 
+    @Autowired
+    private ProductService service;
+     
+    @RequestMapping("/")
+    public String viewHomePage(Model model) {
+        List<Product> listProducts = service.listAll();
+        model.addAttribute("listProducts", listProducts);
+        
+        return "index";
+    }
+
+    @RequestMapping("/new")
+    public String showNewProductPage(Model model) {
+        Product product = new Product();
+        model.addAttribute("product", product);
+        
+        return "new_product";
+    }
+
+    @RequestMapping(value = "/save", method = RequestMethod.POST)
+    public String saveProduct(@ModelAttribute("product") Product product) {
+        service.save(product);
+        
+        return "redirect:/";
+    }
+
+    @RequestMapping("/edit/{id}")
+    public ModelAndView showEditProductPage(@PathVariable(name = "id") int id) {
+        ModelAndView mav = new ModelAndView("edit_product");
+        Product product = service.get(id);
+        mav.addObject("product", product);
+        
+        return mav;
+    }
+
+    @RequestMapping("/delete/{id}")
+    public String deleteProduct(@PathVariable(name = "id") int id) {
+        service.delete(id);
+        return "redirect:/";       
+    }
+}
+```
+
+## View
+* -> create the index.html file under **`src/main/resources/templates`**
+
+```html - index.html
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8"/>
+<title>Product Manager</title>
+</head>
+<body>
+<div align="center">
+    <h1>Product List</h1>
+    <a href="/new">Create New Product</a>
+    <br/><br/>
+    <table border="1" cellpadding="10">
+        <thead>
+            <tr>
+                <th>Product ID</th>
+                <th>Name</th>
+                <th>Brand</th>
+                <th>Made In</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="product : ${listProducts}">
+                <td th:text="${product.id}">Product ID</td>
+                <td th:text="${product.name}">Name</td>
+                <td th:text="${product.brand}">Brand</td>
+                <td th:text="${product.madein}">Made in</td>
+                <td th:text="${product.price}">Price</td>
+                <td>
+                    <a th:href="/@{'/edit/' + ${product.id}}">Edit</a>
+                    &nbsp;&nbsp;&nbsp;
+                    <a th:href="/@{'/delete/' + ${product.id}}">Delete</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>   
+</body>
+</html>
+```
+
+```html - new_product.html
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<title>Create New Product</title>
+</head>
+<body>
+    <div align="center">
+        <h1>Create New Product</h1>
+        <br />
+        <form action="#" th:action="@{/save}" th:object="${product}"
+            method="post">
+ 
+            <table border="0" cellpadding="10">
+                <tr>
+                    <td>Product Name:</td>
+                    <td><input type="text" th:field="*{name}" /></td>
+                </tr>
+                <tr>
+                    <td>Brand:</td>
+                    <td><input type="text" th:field="*{brand}" /></td>
+                </tr>
+                <tr>
+                    <td>Made In:</td>
+                    <td><input type="text" th:field="*{madein}" /></td>
+                </tr>
+                <tr>
+                    <td>Price:</td>
+                    <td><input type="text" th:field="*{price}" /></td>
+                </tr>                            
+                <tr>
+                    <td colspan="2"><button type="submit">Save</button> </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+```html - edit_product.html
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<title>Edit Product</title>
+</head>
+<body>
+    <div align="center">
+        <h1>Edit Product</h1>
+        <br />
+        <form action="#" th:action="@{/save}" th:object="${product}"
+            method="post">
+ 
+            <table border="0" cellpadding="10">
+                <tr>             
+                    <td>Product ID:</td>
+                    <td>
+                        <input type="text" th:field="*{id}" readonly="readonly" />
+                    </td>
+                </tr>        
+                <tr>             
+                    <td>Product Name:</td>
+                    <td>
+                        <input type="text" th:field="*{name}" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>Brand:</td>
+                    <td><input type="text" th:field="*{brand}" /></td>
+                </tr>
+                <tr>
+                    <td>Made In:</td>
+                    <td><input type="text" th:field="*{madein}" /></td>
+                </tr>
+                <tr>
+                    <td>Price:</td>
+                    <td><input type="text" th:field="*{price}" /></td>
+                </tr>                            
+                <tr>
+                    <td colspan="2"><button type="submit">Save</button> </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</body>
+</html>
+```
+
+## Running
+* -> run the **AppMain.java**, then open web browser to access **http://localhost:8080**

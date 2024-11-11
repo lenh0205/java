@@ -2,6 +2,11 @@
 > both with require an OAuth authentication (`authenticating the users` and `issuing access tokens`) from a an OAuth authorization server (using `Spring Security OAuth Authorization Server`)
 
 =========================================================================
+# Spring Authorization Server vs Keycloak
+https://medium.com/@ilya.kovalkov/auth0-vs-keycloak-vs-spring-authorization-server-ba3350fae8c9
+https://viblo.asia/p/keycloak-spring-boot-bat-dau-voi-keycloak-va-spring-boot-bat-dau-lam-viec-voi-user-trong-realm-3Q75wAP3ZWb
+
+=========================================================================
 # Authorization server Configuration
 * -> _xem phần `~\security\SpringAuthorizationServer\basic_setup.md` để setup 1 cách cơ bản_
 
