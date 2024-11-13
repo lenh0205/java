@@ -8,9 +8,11 @@
 * -> contains the **`Authentication`** of the currently authenticated user
 
 ## Authentication
+* -> can be **`an input`** to **`AuthenticationManager`** to provide the credentials a user has provided to authenticate (_when used in this scenario, **isAuthenticated()** returns **false**_)
+
 * -> **`Authentication`** represent the **`currently authenticated user`**: 
 * _i **`principal`** (**UserDetails** instance in user/password authentication), **`credentials`** (often a password), **`authorities`** (**GrantedAuthority** instances)_
-* -> can be **`an input`** to **`AuthenticationManager`** to provide the credentials a user has provided to authenticate (_when used in this scenario, **isAuthenticated()** returns **false**_)
+
 
 ## GrantedAuthority
 * -> **'GrantedAuthority' instances** are **`high-level permissions`** that the user is granted - 2 examples are **`roles`** and **`scopes`**
@@ -23,13 +25,13 @@
 
 ## ProviderManager
 * -> is the **most commonly used implementation** of **`AuthenticationManager`**
-* -> ProviderManager delegates to a **`List of 'AuthenticationProvider' instances`**
+* -> ProviderManager delegates to a **List of `AuthenticationProvider` instances**
 
 * -> if **none of the configured `AuthenticationProvider` instances can `authenticate`**, authentication fails with a **`ProviderNotFoundException`**
 * -> which is a special **`AuthenticationException`** that indicates that **the `ProviderManager` was not configured to support the `type of Authentication` that was passed into it**
 
 ## AuthenticationProvider 
-* -> can inject **multiple `AuthenticationProviders` instances** into **ProviderManager** 
+* -> can inject **multiple 'AuthenticationProviders' instances** into **`ProviderManager`** 
 
 * -> each **AuthenticationProvider** has an opportunity to **indicate that authentication should be `successful`, `fail`**
 * -> or **indicate it `cannot make a decision` and allow a `downstream 'AuthenticationProvider'` to decide**
@@ -37,6 +39,33 @@
 * -> each **AuthenticationProvider** performs **`a specific type of authentication`**
 * _For example, **DaoAuthenticationProvider** supports `username/password-based authentication`, while **JwtAuthenticationProvider** supports `authenticating a JWT token`_
 * => this lets each "AuthenticationProvider" **do a very specific type of authentication** **`while supporting multiple types of authentication`** and **`expose only a single AuthenticationManager bean`**
+
+## AbstractAuthenticationProcessingFilter
+* -> is used as a **`base Filter for authenticating a user's credentials`**
+* -> the **AuthenticationEntryPoint** will requests the credentials, then the **AbstractAuthenticationProcessingFilter** will **`authenticate any authentication requests that are submitted to it`**
+
+=========================================================================
+# Process
+* -> before the **credentials can be authenticated**, Spring Security typically requests the credentials by using **`AuthenticationEntryPoint`**
+
+* -> when the user submits their credentials, the **`AbstractAuthenticationProcessingFilter`** creates an **`Authentication`** from the **HttpServletRequest** to be authenticated
+* _the **`type of 'Authentication'`** created depends on the **`subclass of 'AbstractAuthenticationProcessingFilter'`**
+* _for example: **UsernamePasswordAuthenticationFilter** creates a **UsernamePasswordAuthenticationToken** from **a username and password** that are submitted in the "HttpServletRequest"_
+
+* -> next, the **Authentication** is passed into the **`AuthenticationManager`** to be authenticated
+
+* -> if authentication fails, then **Failure**
+* -> the **`SecurityContextHolder`** is cleared out
+* -> **`RememberMeServices.loginFail`** is invoked (_if remember me is not configured, this is a no-op_)
+* -> **`AuthenticationFailureHandler`** is invoked
+
+* -> if authentication is successful, then **Success**
+* -> **`SessionAuthenticationStrategy`** is notified of a new login
+* -> the **`Authentication`** is set on the **`SecurityContextHolder`**
+* _later, if we need to save the **`SecurityContext`** so that it can be **automatically set on future requests**, **`SecurityContextRepository#saveContext must be explicitly invoked`**_
+* -> **`RememberMeServices.loginSuccess`** is invoked (_if remember me is not configured, this is a no-op_)
+* -> **ApplicationEventPublisher** publishes an **`InteractiveAuthenticationSuccessEvent`**
+* -> **`AuthenticationSuccessHandler`** is invoked
 
 =========================================================================
 # 'SecurityContextHolder' Example

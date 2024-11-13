@@ -13,15 +13,21 @@
 ![Drag Racing](./../../asset/image.png)
 
 * -> khi **Client** gửi request đến **application**, nó sẽ đi qua **`FilterChain`** 
+
 * -> **FilterChain** sẽ bao gồm các **`'Filter' instance`** và **`Servlet`**
-* -> Spring hỗ trợ 1 _Filter đặc biệt của Spring_ là **`DelegatingFilterProxy`** - nó giúp đăng ký 1 **Filter tiêu chuẩn của Servlet** nhưng có khả năng **delegate to a Spring Bean implement 'Filter'**
+
+* -> Spring hỗ trợ 1 _Filter đặc biệt của Spring_ là **`DelegatingFilterProxy`** - là cấu nối giữa **Servlet container's lifecycle** and **Spring’s ApplicationContext**
+* -> giúp đăng ký 1 **Filter tiêu chuẩn của Servlet** nhưng có khả năng **delegate to a Spring Bean implement 'Filter'**
+
 * -> **`FilterChainProxy`** là 1 **`Filter` cung cấp bởi `Spring Security`** dưới dạng **`Bean` nên sẽ được wrapped trong `DelegatingFilterProxy`** để cung cấp 1 starting point cho **Spring Security’s Servlet support**
 * -> 1 **FilterChainProxy** sẽ quyết định when/which **`SercurityChain`** / **`Security Filter`** sẽ được invoked cho current request
+
 * -> mỗi **`SercurityChain`** có thể là unique và độc lập lẫn nhau
+
 * -> các **`Security Filters`** in **SecurityFilterChain** are typically **`Beans`** có thể được dùng để **authentication**, **authorization**, **exploit protection**, ...
 
-===========================================================================
-# Example
+
+## Example
 
 ```java - Ex: "FilterChain" Usage
 public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) {
@@ -57,10 +63,49 @@ public class SecurityConfig {
 }
 
 // Thứ tự thực thi là:
-// -> first, the CsrfFilter is invoked to protect against CSRF attacks
+// -> first, the 'CsrfFilter' is invoked to protect against CSRF attacks
 // -> second, the authentication filters are invoked to authenticate the request
 // -> third, the AuthorizationFilter is invoked to authorize the request
 ```
+
+===========================================================================
+# Handling Security Exceptions - ExceptionTranslationFilter
+* -> **`ExceptionTranslationFilter`** is inserted into the **FilterChainProxy** as one of the **`Security Filters`**
+
+* -> the **ExceptionTranslationFilter** allows **translation of `AccessDeniedException` and `AuthenticationException` into HTTP responses**
+* -> _if the application **does not throw an AccessDeniedException or an AuthenticationException**, then **ExceptionTranslationFilter** does not do anything_
+
+## Process
+* -> first, the **ExceptionTranslationFilter** invokes **FilterChain.doFilter(request, response)** to **`invoke the rest of the application`** (_nói chung là tiếp tục processing request như bình thường_)
+
+* -> if the **`user is not authenticated`** or it is an **`AuthenticationException`**, then **Start Authentication**
+* -> the **`SecurityContextHolder` is cleared out**
+* -> the **`HttpServletRequest` is saved** so that it can be used to replay the original request once authentication is successful
+* -> the **`AuthenticationEntryPoint`** is used to **send an HTTP response** that **request credentials from the client** 
+* (_For example, it might redirect to a **`/login page`** or response with a **`WWW-Authenticate header`**_)
+
+* -> otherwise, if it is an **`AccessDeniedException`**, then **Access Denied**;
+* -> the **`AccessDeniedHandler` is invoked** to handle access denied
+
+```java - pseudocode for "ExceptionTranslationFilter"
+try 
+{
+	filterChain.doFilter(request, response); 
+    // means that if another part of the application (FilterSecurityInterceptor or method security) 
+    // throws an AuthenticationException or AccessDeniedException 
+    // it is caught and also handled here
+} 
+catch (AccessDeniedException | AuthenticationException ex) 
+{
+	if (!authenticated || ex instanceof AuthenticationException) {
+		startAuthentication(); 
+	} else {
+		accessDenied(); 
+	}
+}
+```
+
+
 
 ===========================================================================
 # Adding a Custom Filter to the Filter Chain
@@ -132,42 +177,6 @@ public FilterRegistrationBean<TenantFilter> tenantFilterRegistration(TenantFilte
     FilterRegistrationBean<TenantFilter> registration = new FilterRegistrationBean<>(filter);
     registration.setEnabled(false);
     return registration;
-}
-```
-
-===========================================================================
-# Handling Security Exceptions
-* -> "ExceptionTranslationFilter" is inserted into the **FilterChainProxy** as one of the **`Security Filters`**
-
-* -> the **ExceptionTranslationFilter** allows **translation of `AccessDeniedException` and `AuthenticationException` into HTTP responses**
-* => if the application does not throw an AccessDeniedException or an AuthenticationException, then **`ExceptionTranslationFilter does not do anything`**
-
-## Process
-* -> first, the **ExceptionTranslationFilter** invokes **FilterChain.doFilter(request, response)** to **`invoke the rest of the application`** (_nói chung là tiếp tục processing request như bình thường_)
-
-* -> if the **`user is not authenticated`** or it is an **`AuthenticationException`**, then **Start Authentication**
-* -> the **`SecurityContextHolder` is cleared out**
-* -> the **`HttpServletRequest` is saved** so that it can be used to replay the original request once authentication is successful
-* -> the **`AuthenticationEntryPoint` is used to request credentials from the client** (_For example, it might redirect to a "/login page" or send a "WWW-Authenticate header"_)
-
-* -> otherwise, if it is an **`AccessDeniedException`**, then **Access Denied**;
-* -> the **`AccessDeniedHandler` is invoked** to handle access denied
-
-```java - pseudocode for "ExceptionTranslationFilter"
-try 
-{
-	filterChain.doFilter(request, response); 
-    // means that if another part of the application (FilterSecurityInterceptor or method security) 
-    // throws an AuthenticationException or AccessDeniedException 
-    // it is caught and also handled here
-} 
-catch (AccessDeniedException | AuthenticationException ex) 
-{
-	if (!authenticated || ex instanceof AuthenticationException) {
-		startAuthentication(); 
-	} else {
-		accessDenied(); 
-	}
 }
 ```
 
