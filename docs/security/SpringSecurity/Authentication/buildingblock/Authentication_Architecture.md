@@ -1,11 +1,20 @@
 =========================================================================
 # Summary
 
+## AbstractAuthenticationProcessingFilter
+* -> is used as a **`base Filter for authenticating a user's credentials`**
+
+* -> the **AuthenticationEntryPoint** will requests the credentials, 
+* -> then the **AbstractAuthenticationProcessingFilter** will **`authenticate any authentication requests that are submitted to it`**
+
 ## SecurityContextHolder
 * -> contain **`SecurityContext`**
 
+* -> is **where Spring Security `stores the details of who is authenticated`**
+* -> if **it contains a value**, it is used as **`the currently authenticated user`**; Spring Security does not care how the it's populated 
+
 ## SecurityContext
-* -> contains the **`Authentication`** of the currently authenticated user
+* -> contains the **`Authentication`** of the **currently authenticated user**
 
 ## Authentication
 * -> can be **`an input`** to **`AuthenticationManager`** to provide the credentials a user has provided to authenticate (_when used in this scenario, **isAuthenticated()** returns **false**_)
@@ -13,6 +22,7 @@
 * -> **`Authentication`** represent the **`currently authenticated user`**: 
 * _i **`principal`** (**UserDetails** instance in user/password authentication), **`credentials`** (often a password), **`authorities`** (**GrantedAuthority** instances)_
 
+* _các method mà nó có: `getAuthorities(), getCredentials(), getDetails(), getPrincipal(), isAuthenticated(), setAuthenticated(boolean isAuthenticated)`_
 
 ## GrantedAuthority
 * -> **'GrantedAuthority' instances** are **`high-level permissions`** that the user is granted - 2 examples are **`roles`** and **`scopes`**
@@ -40,12 +50,12 @@
 * _For example, **DaoAuthenticationProvider** supports `username/password-based authentication`, while **JwtAuthenticationProvider** supports `authenticating a JWT token`_
 * => this lets each "AuthenticationProvider" **do a very specific type of authentication** **`while supporting multiple types of authentication`** and **`expose only a single AuthenticationManager bean`**
 
-## AbstractAuthenticationProcessingFilter
-* -> is used as a **`base Filter for authenticating a user's credentials`**
-* -> the **AuthenticationEntryPoint** will requests the credentials, then the **AbstractAuthenticationProcessingFilter** will **`authenticate any authentication requests that are submitted to it`**
-
 =========================================================================
+> để biết "SecurityContextRepository" thì xem phần `security\SpringSecurity\Authentication\buildingblock\Persistence_Authentication.md`
+
 # Process
+* -> _xem phần `handling Security Exceptions` của `security\SpringSecurity\Architecture.md`_
+
 * -> before the **credentials can be authenticated**, Spring Security typically requests the credentials by using **`AuthenticationEntryPoint`**
 
 * -> when the user submits their credentials, the **`AbstractAuthenticationProcessingFilter`** creates an **`Authentication`** from the **HttpServletRequest** to be authenticated
@@ -55,14 +65,14 @@
 * -> next, the **Authentication** is passed into the **`AuthenticationManager`** to be authenticated
 
 * -> if authentication fails, then **Failure**
-* -> the **`SecurityContextHolder`** is cleared out
+* -> **`SecurityContextHolder`** is cleared out
 * -> **`RememberMeServices.loginFail`** is invoked (_if remember me is not configured, this is a no-op_)
 * -> **`AuthenticationFailureHandler`** is invoked
 
 * -> if authentication is successful, then **Success**
 * -> **`SessionAuthenticationStrategy`** is notified of a new login
 * -> the **`Authentication`** is set on the **`SecurityContextHolder`**
-* _later, if we need to save the **`SecurityContext`** so that it can be **automatically set on future requests**, **`SecurityContextRepository#saveContext must be explicitly invoked`**_
+* _later, if we need to save the **`SecurityContext`** so that it can be **automatically set on future requests**, **`SecurityContextRepository#saveContext`** must be explicitly invoked_
 * -> **`RememberMeServices.loginSuccess`** is invoked (_if remember me is not configured, this is a no-op_)
 * -> **ApplicationEventPublisher** publishes an **`InteractiveAuthenticationSuccessEvent`**
 * -> **`AuthenticationSuccessHandler`** is invoked

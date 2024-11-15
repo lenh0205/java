@@ -58,6 +58,7 @@ public class SecurityConfig {
             ) 
             .httpBasic(Customizer.withDefaults()) // result in "BasicAuthenticationFilter"
             .formLogin(Customizer.withDefaults()); // result in "UsernamePasswordAuthenticationFilter"
+            
         return http.build();
     }
 }
@@ -74,6 +75,12 @@ public class SecurityConfig {
 
 * -> the **ExceptionTranslationFilter** allows **translation of `AccessDeniedException` and `AuthenticationException` into HTTP responses**
 * -> _if the application **does not throw an AccessDeniedException or an AuthenticationException**, then **ExceptionTranslationFilter** does not do anything_
+
+## Example
+* -> when a user makes an **unauthenticated request** to the resource (/private) for which it is **not authorized**
+* -> Spring Security's **`AuthorizationFilter`** indicates that the **unauthenticated request** is Denied by throwing an **`AccessDeniedException`**
+* -> since the **user is not authenticated**, **`ExceptionTranslationFilter`** initiates Start Authentication and trigger the configured **`AuthenticationEntryPoint`**
+* -> then user will provide their credentials
 
 ## Process
 * -> first, the **ExceptionTranslationFilter** invokes **FilterChain.doFilter(request, response)** to **`invoke the rest of the application`** (_nói chung là tiếp tục processing request như bình thường_)
@@ -104,8 +111,6 @@ catch (AccessDeniedException | AuthenticationException ex)
 	}
 }
 ```
-
-
 
 ===========================================================================
 # Adding a Custom Filter to the Filter Chain
