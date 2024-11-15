@@ -34,6 +34,39 @@ Cookie: SESSION=4c66e474-3f5a-43ed-8e48-cc1d8cb1d1c8
 ```
 
 ===================================================================
+# SecurityContextPersistenceFilter
+* -> the "SecurityContextPersistenceFilter" is responsible for **persisting the `SecurityContext` between requests** using the **SecurityContextRepository**
+
+## Process
+* -> **before running the rest of the application**, **`SecurityContextPersistenceFilter`** loads the **`SecurityContext`** from the **SecurityContextRepository** and sets it on the **SecurityContextHolder**
+* -> next, the application is ran
+* -> finally, if the **SecurityContext has changed**, we **`save the SecurityContext`** using the **`SecurityContextPersistenceRepository`**
+* => this means that when using **`SecurityContextPersistenceFilter`**, just **`setting the SecurityContextHolder`** will ensure that the **SecurityContext is persisted using SecurityContextRepository**
+
+# SecurityContextHolderFilter
+* -> the "SecurityContextHolderFilter" is responsible for **`loading the 'SecurityContext' between requests`** using the **SecurityContextRepository**
+
+## Process
+* -> **before running the rest of the application**, **`SecurityContextHolderFilter`** loads the **`SecurityContext`** from the **SecurityContextRepository** and sets it on the **SecurityContextHolder**
+* -> next, the application is ran
+
+## 'SecurityContextHolderFilter' vs 'SecurityContextPersistenceFilter'
+
+# Note
+* -> Upon using the configuration, it is important that any code that sets the SecurityContextHolder with a SecurityContext also saves the SecurityContext to the SecurityContextRepository if it should be persisted between requests.
+
+```java - Example:
+// Setting SecurityContextHolder with SecurityContextPersistenceFilter
+SecurityContextHolder.setContext(securityContext);
+
+// should be replaced with
+
+// Setting SecurityContextHolder with SecurityContextHolderFilter
+SecurityContextHolder.setContext(securityContext);
+securityContextRepository.saveContext(securityContext, httpServletRequest, httpServletResponse);
+```
+
+===================================================================
 # SecurityContextRepository
 * -> Spring Security the **associate of the `user` to `future requests`** is made using **`SecurityContextRepository`**
 
@@ -96,10 +129,6 @@ public SecurityFilterChain filterChain(HttpSecurity http) {
 	return http.build();
 }
 ```
-
-===================================================================
-# SecurityContextPersistenceFilter
-
 
 ===================================================================
 # SecurityContextHolderFilter
