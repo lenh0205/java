@@ -55,6 +55,7 @@ https://github.com/rwinch/spring-enterprise-authorization-server
 * -> đầu tiên ta cần chỉnh sửa file : thay **implementation project(":spring-security-oauth2-authorization-server")** bằng **implementation "org.springframework.security:spring-security-oauth2-authorization-server:1.4.0"**
 
 * -> copy qua file **`gradew`** (chạy chương trình), **`gradlew.bat`** (chạy daemon), **`settings.gradle`** (gradle build script), thư mục **`gradle`** (chứa gradle wrapper)
+* _lưu ý khi commit có thể làm mất file **gradle-wrapper.jar**, nên cần copy lại khi pull code lần đầu_
 
 * -> giờ để chạy từng project ta sẽ chạy file **.gradle** của chúng
 * -> _Ví dụ để chạy file **`samples-backend-for-spa-client.gradle`** của project **backend-for-spa-client**:_
@@ -69,7 +70,8 @@ https://github.com/rwinch/spring-enterprise-authorization-server
 
 ## Process
 * -> nhấn nút **Login**, "http://127.0.0.1:4200/" gửi GET request "http://127.0.0.1:8080/"
-* -> response Status Code **302 Found** với **Location** header là "http://127.0.0.1:8080/oauth2/authorization/messaging-client-oidc"
+* -> response Status Code **302 Found** với **Location** header là "http://127.0.0.1:8080/oauth2/authorization/messaging-client-oidc" và **Set-Cookie** header là "JSESSIONID=275736A56345841B50599437973C29E5; Path=/; HttpOnly"
+
 * -> Browser redirect tới "http://127.0.0.1:8080/oauth2/authorization/messaging-client-oidc"
 * -> response Status Code **302 Found** với **Location** header là:
 ```bash
@@ -83,13 +85,14 @@ http://localhost:9000/oauth2/authorize
 ```
 
 * -> Browser redirect tới "http://localhost:9000/oauth2/authorize?....."
-* -> response Status Code **302 Found** với "http://localhost:9000/login"
+* -> response Status Code **302 Found** với **Location** header "http://localhost:9000/login" và **Set-Cookie** header là "JSESSIONID=8922586F930E313665F2B405CA06A44C; Path=/; HttpOnly"
 
 * -> Browser redirect tới "http://localhost:9000/login", response về trang **`Login`** html
 
 * -> đăng nhập bằng tài khoản định nghĩa trong **UserDetailsService** Bean của "DefaultSecurityConfig.java" của "demo-authorizationserver"
 * -> submit from bằng POST request "http://localhost:9000/login" với FormData bao gồm **_csrf**, **username**, **password**
-* -> response Status Code **302 Found** với **Location** header là:
+* -> response Status Code **302 Found** với **Set-Cookie** header là JSESSIONID=D1EC073E7957AD440C56D7BD0109C86A; Path=/; HttpOnly
+và **Location** header là:
 ```bash
 http://localhost:9000/oauth2/authorize
     ?response_type=code
@@ -121,7 +124,12 @@ http://127.0.0.1:8080/login/oauth2/code/messaging-client-oidc?
 ```
 
 * -> Browser redirect tới "http://127.0.0.1:8080/login/oauth2/code/messaging-client-oidc?....."
-* -> response với Statue Code là **302 Found** với **Location** header là "http://127.0.0.1:4200"
+* -> response với Statue Code là **302 Found** với **Location** header là "http://127.0.0.1:4200" và 3 **Set-Cookie** header:
+```bash
+set-cookie:  JSESSIONID=FBC5ACAC528ECBEED1403D5E9199A717; Path=/; HttpOnly
+set-cookie: XSRF-TOKEN=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Path=/
+set-cookie: XSRF-TOKEN=8e518827-5b96-4903-b5a5-11b62c1460d8; Path=/
+```
 
 * -> Browser redirect tới "http://127.0.0.1:4200", reponse về trang html
 * -> trang này sẽ gửi AJAX request tới "http://127.0.0.1:8080/userinfo" để lấy về "profile" data của user và hiền thị lên màn hình
