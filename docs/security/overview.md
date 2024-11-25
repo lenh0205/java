@@ -174,8 +174,10 @@ http://127.0.0.1:8080/authorized?
 * -> trang này gửi 1 AJAX request tới "http://127.0.0.1:8080/messages" để lầy về resource và hiển thị ra màn hình
 
 
+===========================================================================
+# Access 
 
-
+## Authorization server
 -> application.yml hiện tại có cấu hình spring#security#oauth2#client và spring#ssl#bundle#jks 
 
 -> custom Implement for authentication
@@ -190,26 +192,97 @@ implements Consumer<OAuth2User> -> chưa xài ở đâu
 -> custom Implement for web authentication:
 implements AuthenticationConverter -> dùng cho authorization server bean config
 
--> @Configuration bean for authorization server:
-SecurityFilterChain
-JdbcRegisteredClientRepository
-JdbcOAuth2AuthorizationService
-JdbcOAuth2AuthorizationConsentService
-OAuth2TokenCustomizer
-JWKSource<SecurityContext>
-JwtDecoder
-AuthorizationServerSettings
-EmbeddedDatabase
+-> **@Configuration** bean for authorization server:
+- SecurityFilterChain: .securityMatcher, .with, .authorizeHttpRequests, .exceptionHandling
+- JdbcRegisteredClientRepository: tạo ra các **RegisteredClient** sau đó dùng **`JdbcRegisteredClientRepository`** để save tất cả chúng
+- JdbcOAuth2AuthorizationService
+- JdbcOAuth2AuthorizationConsentService
+- OAuth2TokenCustomizer<JwtEncodingContext> : tạo 1 **`FederatedIdentityIdTokenCustomizer`** instance
+- JWKSource<SecurityContext>: trả về callback với return là **JWK sử dụng RSA**
+- JwtDecoder
+- AuthorizationServerSettings
+- EmbeddedDatabase:  tạo **`EmbeddedDatabaseBuilder`** instace
 
--> @Configuration + @EnableWebSecurity for security bean:
-SecurityFilterChain
-UserDetailsService
-SessionRegistry
-HttpSessionEventPublisher
+-> **@Configuration + @EnableWebSecurity** for security bean:
+SecurityFilterChain: .authorizeHttpRequests, .formLogin, .oauth2Login
+UserDetailsService: tạo 1 **`InMemoryUserDetailsManager`** instance
+SessionRegistry: tạo 1 **`SessionRegistryImpl`** instance
+HttpSessionEventPublisher: tạo 1 **`HttpSessionEventPublisher`** instance
 
--> @Configuration for Tomcat web server:
+-> **@Configuration** for Tomcat web server bean:
 WebServerFactoryCustomizer<TomcatServletWebServerFactory>
 
--> @Controller AuthorizationConsentController đang sử dụng các beans: 
+-> **@Controller** AuthorizationConsentController đang sử dụng các beans: 
 RegisteredClientRepository, 
 OAuth2AuthorizationConsentService
+
+## Resource server
+
+* -> **application.yml** cấu hình **`spring#oauth2#resourceserver#jwt`** và **`spring#ssl#bundle#jks`**
+
+* -> @Configuration + @EnableWebSecurity for security beans:
+- SecurityFilterChain: .securityMatcher, .authorizeHttpRequests, .oauth2ResourceServer
+
+* -> @Configuration for Tomcat web server bean:
+WebServerFactoryCustomizer<TomcatServletWebServerFactory>
+
+## backend client
+
+* -> **application.yml** cấu hình **`spring#security#oauth2#client#registration`** và **`spring#cloud#gateway#mvc#routes và app#base-uri`**
+
+* -> **resources/META-INF/spring.factories** cấu hình với interface và class ta mới định nghĩa **`GatewayFilterFunctions`** và **`FilterSupplier`** 
+
+* -> **@Configuration + @EnableWebSecurity** cấu hình security:
+- SecurityFilterChain: .csrf, .cors, .exceptionHandling với AuthenticationEntryPoint, .oauth2Login, .logout, .oauth2Client
+
+
+# Summary
+
+## Config
+* -> 2 thằng **Authorization server** và **Resource server** đều cấu hình @Configuration beans cho Tomcat server như nhau
+* -> mục đích là thêm 1 HTTP connector vào Tomcat server 
+* -> _VD: với thằng authorization server thì **connector** này sẽ listen on port 9000 and **`redirects any incoming requests to port 9443`** if they are not already secure (using HTTPS)_
+```java
+@Configuration(proxyBeanMethods = false)
+public class TomcatServerConfig {
+
+	@Bean
+	public WebServerFactoryCustomizer<TomcatServletWebServerFactory> connectorCustomizer() {
+		return (tomcat) -> tomcat.addAdditionalTomcatConnectors(createHttpConnector());
+	}
+
+	private Connector createHttpConnector() {
+        //sets the protocol for the connector to HTTP:
+		Connector connector = new Connector(TomcatServletWebServerFactory.DEFAULT_PROTOCOL);
+		connector.setScheme("http");
+		connector.setPort(9000);
+		connector.setSecure(false); // the connector will not use SSL/TLS encryption for incoming requests
+		connector.setRedirectPort(9443); //  redirect any incoming requests that are not already secure (i.e., using HTTPS) to port 9443.
+		return connector;
+	}
+}
+```
+
+## 'spa-client' và 'backend-client'
+* -> thằng **spa-client** hiện tại sẽ có lấy resource 2 endpoint của **backend-client** (http://127.0.0.1:8080/) là "/messages" và "/userinfo"
+* -> ta sẽ cấu hình những endpoint này với **`Spring Cloud Gateway`** trong file **application.yml** của **backend-client** 
+
+```yml - application.yml
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: userinfo
+            uri: http://localhost:9000
+            predicates:
+              - Path=/userinfo
+            filters:
+              - TokenRelay=
+          - id: messages
+            uri: http://localhost:8090
+            predicates:
+              - Path=/messages
+            filters:
+              - RelayTokenIfExists=messaging-client-authorization-code
+``` 
