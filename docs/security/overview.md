@@ -172,3 +172,44 @@ http://127.0.0.1:8080/authorized?
 
 * -> Browser redirect tới "http://127.0.0.1:4200/"
 * -> trang này gửi 1 AJAX request tới "http://127.0.0.1:8080/messages" để lầy về resource và hiển thị ra màn hình
+
+
+
+
+-> application.yml hiện tại có cấu hình spring#security#oauth2#client và spring#ssl#bundle#jks 
+
+-> custom Implement for authentication
+extends OAuth2ClientAuthenticationToken -> dùng cho "AuthenticationProvider"
+implements AuthenticationProvider -> dùng cho authorization server bean config
+
+-> custom Implement for federation:
+implements AuthenticationSuccessHandler -> dùng cho security bean config
+implements OAuth2TokenCustomizer<JwtEncodingContext> -> dùng cho authorization server bean config
+implements Consumer<OAuth2User> -> chưa xài ở đâu
+
+-> custom Implement for web authentication:
+implements AuthenticationConverter -> dùng cho authorization server bean config
+
+-> @Configuration bean for authorization server:
+SecurityFilterChain
+JdbcRegisteredClientRepository
+JdbcOAuth2AuthorizationService
+JdbcOAuth2AuthorizationConsentService
+OAuth2TokenCustomizer
+JWKSource<SecurityContext>
+JwtDecoder
+AuthorizationServerSettings
+EmbeddedDatabase
+
+-> @Configuration + @EnableWebSecurity for security bean:
+SecurityFilterChain
+UserDetailsService
+SessionRegistry
+HttpSessionEventPublisher
+
+-> @Configuration for Tomcat web server:
+WebServerFactoryCustomizer<TomcatServletWebServerFactory>
+
+-> @Controller AuthorizationConsentController đang sử dụng các beans: 
+RegisteredClientRepository, 
+OAuth2AuthorizationConsentService
