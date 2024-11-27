@@ -178,7 +178,7 @@ http://127.0.0.1:8080/authorized?
 # Access 
 
 ## Authorization server
--> application.yml hiện tại có cấu hình spring#security#oauth2#client và spring#ssl#bundle#jks 
+-> **application.yml** hiện tại có cấu hình **`spring#security#oauth2#client`** cho "Google" và "Github" và **`spring#ssl#bundle#jks`** 
 
 -> custom Implement for authentication
 extends OAuth2ClientAuthenticationToken -> dùng cho "AuthenticationProvider"
@@ -204,10 +204,10 @@ implements AuthenticationConverter -> dùng cho authorization server bean config
 - EmbeddedDatabase:  tạo **`EmbeddedDatabaseBuilder`** instace
 
 -> **@Configuration + @EnableWebSecurity** for security bean:
-SecurityFilterChain: .authorizeHttpRequests, .formLogin, .oauth2Login
-UserDetailsService: tạo 1 **`InMemoryUserDetailsManager`** instance
-SessionRegistry: tạo 1 **`SessionRegistryImpl`** instance
-HttpSessionEventPublisher: tạo 1 **`HttpSessionEventPublisher`** instance
+- SecurityFilterChain: .authorizeHttpRequests, .formLogin, .oauth2Login
+- UserDetailsService: tạo 1 **`InMemoryUserDetailsManager`** instance
+- SessionRegistry: tạo 1 **`SessionRegistryImpl`** instance
+- HttpSessionEventPublisher: tạo 1 **`HttpSessionEventPublisher`** instance
 
 -> **@Configuration** for Tomcat web server bean:
 WebServerFactoryCustomizer<TomcatServletWebServerFactory>
@@ -220,10 +220,10 @@ OAuth2AuthorizationConsentService
 
 * -> **application.yml** cấu hình **`spring#oauth2#resourceserver#jwt`** và **`spring#ssl#bundle#jks`**
 
-* -> @Configuration + @EnableWebSecurity for security beans:
+* -> **@Configuration + @EnableWebSecurity** for security beans:
 - SecurityFilterChain: .securityMatcher, .authorizeHttpRequests, .oauth2ResourceServer
 
-* -> @Configuration for Tomcat web server bean:
+* -> **@Configuration** for Tomcat web server bean:
 WebServerFactoryCustomizer<TomcatServletWebServerFactory>
 
 ## backend client
@@ -235,10 +235,10 @@ WebServerFactoryCustomizer<TomcatServletWebServerFactory>
 * -> **@Configuration + @EnableWebSecurity** cấu hình security:
 - SecurityFilterChain: .csrf, .cors, .exceptionHandling với AuthenticationEntryPoint, .oauth2Login, .logout, .oauth2Client
 
-
+===========================================================================
 # Summary
 
-## Config
+## 'TomCat' web server config
 * -> 2 thằng **Authorization server** và **Resource server** đều cấu hình @Configuration beans cho Tomcat server như nhau
 * -> mục đích là thêm 1 HTTP connector vào Tomcat server 
 * -> _VD: với thằng authorization server thì **connector** này sẽ listen on port 9000 and **`redirects any incoming requests to port 9443`** if they are not already secure (using HTTPS)_
