@@ -286,3 +286,26 @@ spring:
             filters:
               - RelayTokenIfExists=messaging-client-authorization-code
 ``` 
+
+# Compare to default
+
+## Authorization Server
+* _với "authorizationServerSecurityFilterChain"_
+* -> **OAuth2AuthorizationServerConfigurer** có thêm **`.deviceAuthorizationEndpoint()`**, **`.deviceVerificationEndpoint()`**, **`.clientAuthentication`**, **`.authorizationEndpoint()`**
+* -> **HttpSecurity** có thêm **`authorizeHttpRequests`**
+
+* _với "defaultSecurityFilterChain"_
+* -> **HttpSecurity** có thêm **`.oauth2Login()`**
+
+* -> không cấu hình **RegisteredClientRepository** nhưng cấu hình **`JdbcRegisteredClientRepository`**
+
+* -> **`JWKSource<SecurityContext>`** được implement khác đi
+
+* -> có thêm cấu hình **`EmbeddedDatabase`**
+* -> có thêm cấu hình **`JdbcOAuth2AuthorizationService`**
+* -> có thêm cấu hình  **`JdbcOAuth2AuthorizationConsentService`**
+* -> có thêm cấu hình  **`OAuth2TokenCustomizer<JwtEncodingContext>`**
+* -> có thêm cấu hình **`SessionRegistry`**
+* -> có thêm cấu hình **`HttpSessionEventPublisher`**
+
+* -> mặc dù thằng này sử dụng **OAuth2 Client** nhưng lại không gọi **`.oauth2Client()`**

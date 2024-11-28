@@ -1,10 +1,9 @@
 
 * -> **Spring Security's OAuth 2.0 support** consists of two primary feature sets: **`OAuth2 Resource Server`**, **`OAuth2 Client`**
 
-* -> **`OAuth2 Login`** is a very powerful **OAuth2 Client** feature that deserves its own section in the reference documentation. However, it does not exist as a standalone feature and requires OAuth2 Client in order to function.
-
 * -> **authorization server** role is covered by **`Spring Authorization Server`**, which is a separate project built on Spring Security
 
+========================================================================
 # Resource Server
 * -> 2 options to protect access to the API using **`OAuth2`** (authorization server provides **`JWT`** or **`opaque access token`**) or **`JWT`** (custom token)
 
@@ -31,8 +30,11 @@
 # ClientRegistration
 
 ========================================================================
+> `.oauth2Login()` sẽ lo về việc authen, còn `.oauth2Client()` sẽ lo về author
 
-# Log Users In with OAuth2 - .oauth2Login()
+# OAuth2 Client
+
+## Log Users In with OAuth2 - .oauth2Login()
 * -> this feature lets an application have users log in to the application by **using their existing account** at an **`OAuth 2.0 Provider (such as GitHub)`** or **`OpenID Connect 1.0 Provider (such as Google)`**
 * -> "OAuth 2.0 Login" is implemented by using the **`Authorization Code Grant`**
 
@@ -43,7 +45,7 @@
 * -> **`login endpoint`** (e.g. /oauth2/authorization/my-oidc-client) is used to initiate login and perform a redirect to the third party authorization server
 * -> **`redirection endpoint`** (e.g. /login/oauth2/code/my-oidc-client) is used by the authorization server to redirect back to the client application, and will contain a code parameter used to obtain an id_token and/or access_token via the access token request
 
-# Access Protected Resources - .oauth2Client() 
+## Access Protected Resources - .oauth2Client() 
 * -> "request to a third party API" that is protected by OAuth2 is a core use case of Spring OAuth2 Client
 * _về cơ bản là authorize client và gửi truy cập protected resource bằng a Bearer token in the Authorization header_
 
@@ -53,7 +55,7 @@
 * -> ta cũng sẽ sử dụng **`OAuth2AuthorizedClientManager`** to decide how we will be accessing protected resources và config client sử dụng cách đó
 * => Spring Security provides this implementations for **`obtaining access tokens`** that can be **used to access protected resources**
 
-# Access Protected Resources for the Current User - combine 'Log Users In with OAuth2' and 'Access Protected Resources'
+## Access Protected Resources for the Current User - combine 'Log Users In with OAuth2' and 'Access Protected Resources'
 
 ```java - Configure OAuth2 Login and OAuth2 Client
 // configures the application to act as an OAuth2 Client capable of logging the user in and requesting protected resources from a third party API
