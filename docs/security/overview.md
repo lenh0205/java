@@ -290,6 +290,10 @@ spring:
 # Compare to default
 
 ## Authorization Server
+* _với **application.yml**_
+* -> không có cấu hình **`spring#security#oauth2#authorizationserver#client`**
+* -> mà sẽ có cấu hình của **Spring Security OAuth2 Client**: **`spring#security#oauth2#client#registration`**
+
 * _với "authorizationServerSecurityFilterChain"_
 * -> **OAuth2AuthorizationServerConfigurer** có thêm **`.deviceAuthorizationEndpoint()`**, **`.deviceVerificationEndpoint()`**, **`.clientAuthentication`**, **`.authorizationEndpoint()`**
 * -> **HttpSecurity** có thêm **`authorizeHttpRequests`**
@@ -309,3 +313,56 @@ spring:
 * -> có thêm cấu hình **`HttpSessionEventPublisher`**
 
 * -> mặc dù thằng này sử dụng **OAuth2 Client** nhưng lại không gọi **`.oauth2Client()`**
+
+## Resource server
+* _với **application.yml**_
+* -> sẽ có cấu hình **`spring#security#oauth2#resourceserver#jwt`** nhưng là cấu hình cho **`jwk-set-uri`** chứ không phải **`issuer-uri`**
+* => **`issuer-uri`** là **base URL of the authorization server** 
+* => resource server sẽ dùng nó để **validate the `iss` claim in the token**
+* => đồng thời sẽ dùng URI này để retrieve **the OpenID Connect (OIDC) discovery document** (**`<issuer-uri>/.well-known/openid-configuration`**)
+* => **discory document** sẽ cung cấp cho ta various endpoints including the **`jwks_uri`** - points to the **JWK set** (**`public keys`** used to **`verify the JWT's signature`**)
+* => nếu cấu hình **`jwk-set-uri`** -  a direct URL pointing to the JWK endpoint
+* => thường cấu hình dạng này nếu **authorization server does not provide an OIDC discovery document** hoặc muốn **explicitly specify the JWK set location**
+* => khi lấy được **`collection of public keys`** từ **jwk-set-uri** và tìm key phù hợp dựa vào **`kid`** claim của JWT'header
+* => lý do 1 list public keys là do **authorization server** often **`rotate keys`** to enhance security
+* => việc **validate token** sẽ còn bao gồm kiểm tra **`exp`** claim (not expired), **`iss`** claim (token issue by trusted Authorization Server), **`aud`** claim (intended for this Resource Server)
+* => sau khi **validate token** thì nhiệm vụ còn lại của resource server chỉ còn là **Authention** (VD: use **`sub`** claim to identifies authenticated user), **Authorization** (VD: use **`scope`** claim to enforce access control policies.)
+
+* _với cấu hình **securityFilterChain**_
+* -> thay vì authorize any request thì nó sẽ có thêm **`.securityMatcher()`**
+
+## Backend client
+* _với **application.yml**_
+* -> vẫn vậy vẫn có cấu hình **`spring#security#oath2#client#registration`** và **`spring#security#oath2#client#provider`**
+
+* _với **securityFilterChain**_ thì có thêm **`.authorizeHttpRequests()`**, **`.csrf()`**, **`.cors()`**, **`.exceptionHandling()`**, **`.logout`**
+
+# Token
+
+* -> **Resource server** sẽ chỉ deal với **`Access Token`** (not Id Token or Refresh Token)
+
+* -> **Client** sẽ tương tác với cả 3 loại token; sau khi gửi credential tới authorization server thì sẽ nhận được 3 loại token
+* -> send **`Access Token`** to **resource server** để access protected resource
+* -> client sẽ detect **exp** claim để send **`Refresh Token`** to **authorization server** để obtain new **Access Tokens** or **ID Tokens** when the current ones expire
+* -> **`Id Token`** is a part of the **OpenID Connect flow** được sinh ra để cho **client** biết về user infomation
+* -> **`OIDC`** chính là thằng cung cấp a **standardized way** to authenticate users and manage their identity bao gồm **`standard token`** và **`standard user info endpoint`**
+* -> (_nếu ta chỉ sử dụng **OAuth2.0** để authentication bằng cách thêm 1 số claim vào access token đồng thêm tạo thêm custom API để lấy user info_)
+* => **Id token** cũng là 1 JWT dành riêng cho **`client`** bao gồm các claim: sub, email, iss, aud, exp
+* => client trước tiên sẽ validate Signature của nó bằng public key lấy từ **`jwks_uri`** endpoint; rồi validate các claim như **iss**, **aud**, **exp**, **nonce** rồi mới sử dụng 
+* => nó sẽ chứa basic **`user information`** mà client cần (VD: display user profile); nếu cần thêm những user detail khác thì nó có thể gọi **`standard user info endpoint`** với **Access Token** được đính kèm
+* => thay vì client phải gửi thêm 1 request để fetch user information hoặc guess based on the Access Token (nhưng điều này là không nên vì access token nên được dùng cho resource server)
+
+* => nếu **refresh token** expired thì sẽ cần **`Reauthentication`**, client sẽ cần redirect the user to the Authorization Server **`/authorize`** endpoint với suitable param để login
+* => nếu **authorization server** sử dụng cơ chế **`Refresh Token Rotation`** (_for mitigates the risk of token replay attacks_) thì everytime client gửi refresh token để get token mới (_`id_token` hoặc `access_token`_) thì nó cũng sẽ trả cả 3 token **refresh token, access token, id token** mới hoàn toàn (tức là expire time của 3 thằng này cũng sẽ được reset)
+
+* => **PKCE (Proof Key for Code Exchange)** will be **`automatically enabled by default`** in Spring **Security's OAuth 2.0 client** implementation when the **authorization_code grant type** is configured (_starting from Spring Security 5.5_) 
+* (_The `OAuth2AuthorizedClientManager` and `OAuth2LoginAuthenticationFilter` automatically add PKCE support when performing the Authorization Code flow_)
+* => dùng để chống **authorization code interception attack**
+* => với **`PKCE`** thì client sẽ có thêm nhiệm vụ là generate 1 cặp **`Code_Challenge và Code_Verifier`** thay vì lưu trữ trực tiếp **Client Secret** (embedded secret can be extract in SPA, native app)
+* => khi **`Code_Challenge`** sẽ được gửi kèm khi user được redirect tới trang **/Login** của authorization server và được authorization server lưu lại
+* => sau đó để client lấy được **Access Token** nó sẽ gửi **`Code_Verifier`**, **Client ID**, **Authorization Code** cho Authorization Server
+* => Authorization Server sử dụng Code_Challenge và Code_Verifier để validate sau đó cấp Access Token
+
+* => mặc dù ban đầu **PKCE** là thiết kế cho **public client** (_where secrets can't be securely stored_) nhưng sau đó được dùng cho cả confidential clients (such as **`server-side web applications`** - có thể lưu **client secret**) như là việc thêm 1 lớp bảo vệ bao gồm:
+* (`Authorization Code Interception`: An attacker cannot use an intercepted authorization code without the code_verifier)
+* (`Man-in-the-Middle Attacks`: PKCE ensures the client exchanging the code is the same one that initiated the authorization request_)
