@@ -64,6 +64,8 @@ spring:
 * -> by define the **minimum required components** as **a `@Bean` in a `Spring @Configuration`**
 * (_đọc `~\security\SpringAuthorizationServer\Configuration_model.md` để hiểu thêm_)
 
+* _đây là java config cho authorization-server được triển khai tương tự như trong application.yml, vậy nên ta có thể bỏ đi config trong application.yml cũng được_
+
 ```java - SecurityConfig.java
 @Configuration
 @EnableWebSecurity // enable the Spring web security module

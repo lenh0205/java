@@ -292,14 +292,14 @@ spring:
 ## Authorization Server
 * _với **application.yml**_
 * -> không có cấu hình **`spring#security#oauth2#authorizationserver#client`**
-* -> mà sẽ có cấu hình của **Spring Security OAuth2 Client**: **`spring#security#oauth2#client#registration`**
+* -> mà sẽ có cấu hình của **Spring Security OAuth2 Client** (for OAuth 2.0 Login with Social Login Provider): **`spring#security#oauth2#client#registration`**
 
 * _với "authorizationServerSecurityFilterChain"_
 * -> **OAuth2AuthorizationServerConfigurer** có thêm **`.deviceAuthorizationEndpoint()`**, **`.deviceVerificationEndpoint()`**, **`.clientAuthentication`**, **`.authorizationEndpoint()`**
 * -> **HttpSecurity** có thêm **`authorizeHttpRequests`**
 
 * _với "defaultSecurityFilterChain"_
-* -> **HttpSecurity** có thêm **`.oauth2Login()`**
+* -> **HttpSecurity** có thêm **`.oauth2Login()`** để dùng social login provider for authentication
 
 * -> không cấu hình **RegisteredClientRepository** nhưng cấu hình **`JdbcRegisteredClientRepository`**
 
