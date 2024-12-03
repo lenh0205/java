@@ -366,3 +366,10 @@ spring:
 * => mặc dù ban đầu **PKCE** là thiết kế cho **public client** (_where secrets can't be securely stored_) nhưng sau đó được dùng cho cả confidential clients (such as **`server-side web applications`** - có thể lưu **client secret**) như là việc thêm 1 lớp bảo vệ bao gồm:
 * (`Authorization Code Interception`: An attacker cannot use an intercepted authorization code without the code_verifier)
 * (`Man-in-the-Middle Attacks`: PKCE ensures the client exchanging the code is the same one that initiated the authorization request_)
+
+# Scope
+* -> **client** send authorization request to Authorization Server with a **'scope' parameter** to request specific scopes; the Authorization Server **`will not grant more scopes than the client originally asked for`**
+* -> Authorization Server will use **`User Consent`** screen to presents these requested scopes for the user to grant to the client application
+* -> Authorization Server may also have it own **`policies`** to restrict certain scopes based on the client's identity or type
+* -> Authorization server also considers the actual **`User permissions`** (or roles) within the system to determine if the granted scope is valid to use
+* => after processing all these factors, the authorization server issues an access token with the final set of approved scopes as a claim

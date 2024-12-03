@@ -1,3 +1,9 @@
+> using KeyCloak: https://github.com/serlesen/authorization-server
+
+# Note
+* -> @EnableWebSecurity activates the Spring Security infrastructure
+* -> chỉ dùng cho 1 configuration class that serves as the primary entry point for Spring Security customization
+* -> if we have multiple security configurations spread across different classes, only one class needs to be annotated with @EnableWebSecurity; other classes can simply be annotated with @Configuration or use the @Bean method 
 
 # enable 'Authorization Code' grant type with PKCE
 
@@ -144,3 +150,27 @@ public class SecurityConfig {
 
 }
 ```
+
+=============================================================================
+# Reference
+https://www.linkedin.com/pulse/spring-cloud-gateway-authorization-server-react-web-app-young-gyu-kim-zevoc
+https://stackoverflow.com/questions/77850783/how-a-react-application-connect-to-an-oauth-2-spring-authorization-server-resou
+https://www.baeldung.com/spring-authentication-single-page-application-pkce
+https://www.devglan.com/spring-security/spring-boot-oauth2-angular#google_vignette
+https://stackoverflow.com/questions/tagged/spring-authorization-server
+https://www.reddit.com/r/SpringBoot/comments/1dx7snk/spring_security_vs_spring_oauth2_resource_server/
+https://stackoverflow.com/questions/tagged/spring-authorization-server?tab=Active
+https://www.baeldung.com/rest-api-spring-oauth2-angular
+https://stackoverflow.com/questions/71479250/spring-security-oauth2-authorization-server-angular-auth-oidc-client
+https://www.baeldung.com/rest-api-spring-oauth2-angular-legacy
+https://medium.com/@koffimawuli.adjoda_20701/spring-boot-3-oauth2-with-angular-271be28e9ffe
+https://www.youtube.com/playlist?list=PL4bT56Uw3S4zqmhhzJdsA_8aNhttF3mWa
+https://github.com/lspil/full_stack_oauth2
+https://stackoverflow.com/questions/74046391/spring-authorization-server-and-user-registration
+https://stackoverflow.com/questions/78710786/spring-oauth2-authorization-server-login-registration-and-forget-passowrd-flo
+https://www.baeldung.com/spring-dynamic-client-registration
+
+# Github
+https://github.com/rwinch/spring-enterprise-authorization-server/tree/main/authorization-server
+https://github.com/dynamind/spring-boot-security-oauth2-minimal
+https://github.com/Baeldung/spring-security-oauth
