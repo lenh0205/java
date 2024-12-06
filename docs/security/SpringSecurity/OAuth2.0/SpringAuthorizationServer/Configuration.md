@@ -1,7 +1,8 @@
 =============================================================================
-# Default configuration - OAuth2AuthorizationServerConfiguration
-* -> it uses **OAuth2AuthorizationServerConfigurer** to provide **`minimal default configuration`** and registers a **`SecurityFilterChain @Bean`** composed of all the infrastructure components 
-* -> for **an OAuth2 authorization server**
+# OAuth2AuthorizationServerConfiguration
+* _provide **`minimal default configuration`** for **`an OAuth2 authorization server`**_
+* -> uses **OAuth2AuthorizationServerConfigurer** to apply the default configuration
+* -> registers a **SecurityFilterChain @Bean** composed of all the infrastructure components supporting an OAuth2 authorization server
 
 =============================================================================
 # OAuth2
@@ -32,7 +33,7 @@ public class AuthorizationServerConfig {
 	}
 
 	@Bean
-	public JWKSource<SecurityContext> jwkSource() {
+	public JWKSource<SecurityContext> jwkSource() { // enable config for JWK Set endpoint
 		RSAKey rsaKey = ...
 		JWKSet jwkSet = new JWKSet(rsaKey);
 		return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
