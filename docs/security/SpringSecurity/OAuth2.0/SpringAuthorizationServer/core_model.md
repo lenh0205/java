@@ -1,3 +1,9 @@
+> đối với 1 sản phẩm thực sự thì Authorization Server sẽ cần kết nối database với 3 tables tối thiểu là: JdbcRegisteredClientRepository, JdbcOAuth2AuthorizationService, JdbcOAuth2AuthorizationConsentService
+> nhưng thực tế có thể ta sẽ cần table cho UserDetailsService cho việc Authenticate thông qua JdbcUserDetailsManager: https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/jdbc.html
+
+> nên nhớ authorization server primary focus is on authentication and token management rather than user management
+> vậy nên thường thì chức năng user registration sẽ implemented as a separate service or feature
+
 ===================================================================
 > thằng này sẽ dùng để khởi tạo **RegisteredClientRepository**
 
@@ -463,13 +469,13 @@ public final class OAuth2AuthorizationConsent implements Serializable {
 # OAuth2AuthorizationConsentService
 * -> is the **central component** where **`new authorization consents are stored`** and **`existing authorization consents are queried`**
 * ->  is an **`OPTIONAL`** component 
-* -> primarily used by **components that implement an `OAuth2 authorization request flow`** – for example, the **authorization_code grant**
+* -> primarily used by **components that implement an `OAuth2 authorization request flow`** - for example, the **authorization_code grant**
 
 ## built-in Implementation
 * -> the provided implementations are **`InMemoryOAuth2AuthorizationConsentService`** and **`JdbcOAuth2AuthorizationConsentService`**
 * -> defaults to **`InMemoryOAuth2AuthorizationConsentService`**
 
-* -> the **`InMemoryOAuth2AuthorizationConsentService`** implementation stores OAuth2AuthorizationConsent instances **in-memory** and is recommended ONLY for **development and testing** 
+* -> **`InMemoryOAuth2AuthorizationConsentService`** implementation stores OAuth2AuthorizationConsent instances **in-memory** and is recommended ONLY for **development and testing** 
 * -> **`JdbcOAuth2AuthorizationConsentService`** is a JDBC implementation that persists OAuth2AuthorizationConsent instances by using **JdbcOperations**
 
 ## Register an 'OAuth2AuthorizationConsentService' @Bean
