@@ -16,7 +16,9 @@ implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 
 * -> có thể tạo file **`index.html`**, nó sẽ được tự động lấy làm trang mặc định khi start trang web ở "/" nếu chưa định nghĩa các action 
 
-* -> để tạo các trang khác, tạo 1 lớp Controller ngay bên dưới **`java/com/example/demo`** (_tạo chỗ khác sẽ lỗi, cũng méo hiểu tại sao_)
+* -> để tạo các trang khác, tạo 1 lớp Controller ngay bên dưới **`java/com/example/demo`** (_để chổ khác sẽ lỗi_)
+* -> lý do là vì những package cũng như các class để chạy được (DI) phải đặt dưới cùng 1 **namespace** của class chứa entry point để chạy project
+
 ```java
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
