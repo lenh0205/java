@@ -1,8 +1,8 @@
 > đối với 1 sản phẩm thực sự thì Authorization Server sẽ cần kết nối database với 3 tables tối thiểu là: JdbcRegisteredClientRepository, JdbcOAuth2AuthorizationService, JdbcOAuth2AuthorizationConsentService
-> nhưng thực tế có thể ta sẽ cần table cho UserDetailsService cho việc Authenticate thông qua JdbcUserDetailsManager: https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/jdbc.html
 
-> nên nhớ authorization server primary focus is on authentication and token management rather than user management
-> vậy nên thường thì chức năng user registration sẽ implemented as a separate service or feature
+> nhưng thực tế có thể ta sẽ cần table cho UserDetailsService cho việc Authenticate thông qua JdbcUserDetailsManager
+> Spring Security's default JDBC-based UserDetailsService sẽ required **users** and **authorities** table
+> https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/jdbc.html
 
 ===================================================================
 > thằng này sẽ dùng để khởi tạo **RegisteredClientRepository**
