@@ -27,10 +27,25 @@ spring.datasource.username=sa
 spring.datasource.password=xxxxxx
 
 spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-
 spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.SQLServerDialect
+```
+
+```yml - application.yml
+spring:
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=JavaTesting;trustServerCertificate=true;
+    username: sa
+    password: lenh0205
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
 ```
 
 ## Enviroment
@@ -44,6 +59,10 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.SQLServerDialect
 
 ## Runing
 * -> h ta reload project rồi chạy lại thử xem nó có báo lỗi connect database không là được
+
+## Tạo bảng
+* -> khi ta chạy project nếu có JDBC thì nó sẽ check xem ta có định nghĩa các entity chưa (**`@Entity @Table`**) nếu có thì nó sẽ tạo các bảng ngay khi chạy project lên
+* -> nếu bảng đó đã được tạo rồi thì thôi
 
 ==============================================================================
 # Entities

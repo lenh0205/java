@@ -5,7 +5,10 @@
 * _xem `~\security\SpringSecurity\Authentication\type\UsernamePassword.md` để hiểu_
 
 ## UserDetails
-* https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/user-details.html
+* -> is **`returned`** by the **UserDetailsService**
+* -> the **DaoAuthenticationProvider** **`validates`** the **UserDetails** and then **`returns`** an **Authentication** that has **`a principal`** that is the UserDetails returned by the configured UserDetailsService
+
+* các nội dung khác: https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/user-details.html
 
 ## JdbcUserDetailsManager
 * -> extends **`JdbcDaoImpl`** to provide **`management of UserDetails`** through the **UserDetailsManager interface**
